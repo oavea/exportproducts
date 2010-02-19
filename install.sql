@@ -1,0 +1,38 @@
+CREATE TABLE IF NOT EXISTS `PREFIX_export_fields` (
+	`id` int(10) NOT NULL auto_increment,
+	`field_name` varchar(50) NOT NULL,
+	`database_name` varchar(50) NOT NULL,
+	`category` varchar(50) NOT NULL,
+	`position` int(2) NOT NULL default '0',
+	PRIMARY KEY  (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
+		
+INSERT INTO `PREFIX_export_fields` (`id`, `field_name`, `database_name`, `category`, `position`) VALUES
+(1, 'Product Id', 'id_product', 'products', 0),
+(2, 'Product Reference', 'reference', 'products', 0),
+(3, 'Name', 'name', 'products_lang', 0),
+(4, 'Short Description', 'description_short', 'products_lang', 0),
+(5, 'Long Description', 'description', 'products_lang', 0),
+(6, 'Quantity', 'quantity', 'products', 0),
+(7, 'Price', 'price', 'products', 0),
+(8, 'Wholesale Price', 'wholesale_price', 'products', 0),
+(9, 'Supplier Name', 'id_supplier', 'products', 0),
+(10, 'Manufacturer', 'id_manufacturer', 'products', 0),
+(11, 'Tax %', 'id_tax', 'products', 0),
+(12, 'Categories', 'id_category_default', 'products', 0),
+(13, 'On Sale', 'on_sale', 'products', 0),
+(14, 'Reduction Price', 'reduction_price', 'products', 0),
+(15, 'Reduction %', 'reduction_percent', 'products', 0),
+(16, 'Reduction From', 'reduction_from', 'products', 0),
+(17, 'Reduction To', 'reduction_to', 'products', 0),
+(18, 'Supplier Reference', 'supplier_reference', 'products', 0),
+(19, 'Weight', 'weight', 'products', 0),
+(20, 'Date Added', 'date_add', 'products', 0),
+(21, 'Active', 'active', 'products', 0),
+(22, 'Meta Title', 'meta_title', 'products_lang', 0),
+(23, 'Meta Description', 'meta_description', 'products_lang', 0),
+(24, 'Meta Keywords', 'meta_keywords', 'products_lang', 0),
+(25, 'Available Now', 'available_now', 'products_lang', 0),
+(26, 'Available Later', 'available_later', 'products_lang', 0),
+(27, 'Tags', 'tags', 'products', 0),
+(28, 'Accessories', 'accessories', 'products', 0);
