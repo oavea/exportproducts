@@ -115,7 +115,23 @@ ul.newList li {
 	cursor: pointer;
 	margin: 5px;
 	font-size: 11px;
-	height: 16px;
+	height: 20px;
+	width: 100px;
+	line-height: 20px;
+	display: inline-block;
+}
+
+#selectall {
+	background: url(images/page_white_go.png) 0% 10% no-repeat;
+	padding: 0px 0px 0px 24px;
+	display: block;
+	cursor: pointer;
+	margin: 5px;
+	font-size: 11px;
+	height: 20px;
+	width: 100px;
+	line-height: 20px;
+	display: inline-block;
 }
 
 #exportoptions div form {
@@ -188,4 +204,10 @@ ul.newList li {
 	padding: 5px;
 	color: #588227;
 	font-weight: bold;
+}
+
+
+#wcurrency {
+	width: 16px !important;
+	height: 16px !important;
 }

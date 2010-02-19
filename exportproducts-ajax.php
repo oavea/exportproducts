@@ -100,6 +100,12 @@ if(isset($_REQUEST['action'])) {
 			}
 			echo $id;
 		break;
+		case "selectAll":
+			$query = Db::getInstance()->Execute("UPDATE `"._DB_PREFIX_."export_fields` SET position=id");
+    		$sql="SELECT * FROM `"._DB_PREFIX_."export_fields` ORDER BY position ASC";
+			$field_list = Db::getInstance()->ExecuteS($sql);
+			echo json_encode($field_list);
+		break;
 		case "clearSelected":
 			$array = array('position' => 0);
 			$query = Db::getInstance()->autoExecute(_DB_PREFIX_."export_fields", $array, 'UPDATE', 'position != 0');
@@ -107,7 +113,9 @@ if(isset($_REQUEST['action'])) {
 			if(!$query) {
 				echo false;
 			}
-			echo true;
+			$sql="SELECT * FROM `"._DB_PREFIX_."export_fields`";
+			$field_list = Db::getInstance()->ExecuteS($sql);
+			echo json_encode($field_list);
 		break;
 		case "deleteSet":
 			$setid = $_REQUEST['setid'];

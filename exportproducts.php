@@ -14,7 +14,7 @@ class ExportProducts extends Module
 	{
 		$this->name = 'exportproducts';
 		$this->tab = 'Tools';
-		$this->version = '0.1';
+		$this->version = '0.2';
 		
 		/* The parent construct is required for translations */
 		parent::__construct();
@@ -26,21 +26,64 @@ class ExportProducts extends Module
 
 	function install()
 	{
-		if(!file_exists(dirname(__FILE__) . '/install.sql')) {
-			return false;
-		} elseif(!$sql = file_get_contents(dirname(__FILE__) . '/install.sql')) {
-			return false;
-		}
+		
+		$export_fields_sql = "
+		DROP TABLE IF EXISTS  `" . _DB_PREFIX_ . "export_fields`;
+		CREATE TABLE IF NOT EXISTS `" . _DB_PREFIX_ . "export_fields` (
+			`id` int(10) NOT NULL auto_increment,
+			`field_name` varchar(50) NOT NULL,
+			`database_name` varchar(50) NOT NULL,
+			`category` varchar(50) NOT NULL,
+			`position` int(2) NOT NULL default '0',
+			PRIMARY KEY  (`id`)
+		)";
 	
-		$sql = str_replace('PREFIX_', _DB_PREFIX_, $sql);
-		$sql = preg_split("/;\s*[\r\n]+/", $sql);
+		$export_set_sql = '	
+		DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'export_set`;
+		CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'export_set` (
+		  `id` int(10) unsigned NOT NULL auto_increment,
+		  `set_name` varchar(200) NOT NULL,
+		  `set_values` text NOT NULL,
+		  PRIMARY KEY  (`id`)
+		)';
+
+		$export_fields_data_sql = "
+		INSERT INTO `" . _DB_PREFIX_ . "export_fields` (`id`, `field_name`, `database_name`, `category`, `position`) VALUES
+		(1, 'Product Id', 'id_product', 'products', 0),
+		(2, 'Product Reference', 'reference', 'products', 0),
+		(3, 'Name', 'name', 'products_lang', 0),
+		(4, 'Short Description', 'description_short', 'products_lang', 0),
+		(5, 'Long Description', 'description', 'products_lang', 0),
+		(6, 'Quantity', 'quantity', 'products', 0),
+		(7, 'Price', 'price', 'products', 0),
+		(8, 'Wholesale Price', 'wholesale_price', 'products', 0),
+		(9, 'Supplier Name', 'id_supplier', 'products', 0),
+		(10, 'Manufacturer', 'id_manufacturer', 'products', 0),
+		(11, 'Tax %', 'id_tax', 'products', 0),
+		(12, 'Categories', 'id_category_default', 'products', 0),
+		(13, 'On Sale', 'on_sale', 'products', 0),
+		(14, 'Reduction Price', 'reduction_price', 'products', 0),
+		(15, 'Reduction %', 'reduction_percent', 'products', 0),
+		(16, 'Reduction From', 'reduction_from', 'products', 0),
+		(17, 'Reduction To', 'reduction_to', 'products', 0),
+		(18, 'Supplier Reference', 'supplier_reference', 'products', 0),
+		(19, 'Weight', 'weight', 'products', 0),
+		(20, 'Date Added', 'date_add', 'products', 0),
+		(21, 'Active', 'active', 'products', 0),
+		(22, 'Meta Title', 'meta_title', 'products_lang', 0),
+		(23, 'Meta Description', 'meta_description', 'products_lang', 0),
+		(24, 'Meta Keywords', 'meta_keywords', 'products_lang', 0),
+		(25, 'Available Now', 'available_now', 'products_lang', 0),
+		(26, 'Available Later', 'available_later', 'products_lang', 0),
+		(27, 'Tags', 'tags', 'products', 0),
+		(28, 'Accessories', 'accessories', 'products', 0),
+		(29, 'Images', 'images', 'products', 0);
+		";
 	
-		foreach($sql AS $k => $query) {
-			Db::getInstance()->Execute(trim($query));
-		}
-		if (!parent::install())
-			return false;
-		return true;
+		return(Db::getInstance()->Execute($export_fields_sql) AND
+			   Db::getInstance()->Execute($export_set_sql) AND
+			   Db::getInstance()->Execute($export_fields_data_sql) AND
+			   parent::install());
 	}
 	
 	function uninstall()
@@ -76,22 +119,22 @@ class ExportProducts extends Module
 				}
 				$smarty->assign('sets', $sets);
 			}
+				
+			$langs = Language::getLanguages();
+			$smarty->assign('langs', $langs);
 			
 			/* display the module name */
 			$this->_html = '<h2>'.$this->displayName.'</h2>';
 			
-			if($efields = $_POST['export_data']) {
-			
-			$efields = explode("&export[]=", $efields);
-			
-			$sql="SELECT * FROM `"._DB_PREFIX_."export_fields` ORDER BY position";
+			if(isset($_POST['export'])) {
+				
+			$sql="SELECT * FROM `"._DB_PREFIX_."export_fields` WHERE position !=0 ORDER BY position ASC";
 			$field_list = Db::getInstance()->ExecuteS($sql);
+
 			foreach($field_list as $field => $value){
-				if(in_array($value['id'], $efields)) {
 					$export_fields[$value['database_name']] = array('name' => $value['field_name'], 'category' => $value['category']);
-				}
-			}
-						
+			} 
+			
 			foreach($export_fields as $field => $array) {
 				$titles[] = $array['name'];
 				
@@ -105,6 +148,11 @@ class ExportProducts extends Module
 							case "tags":
 								$inc_tags = true;
 							break;
+							case "images":
+								$inc_images = true;
+							break;
+							case "id_product":
+							break;
 							default:
 								$fields[] = "p.`" . $field . "`";
 							break;
@@ -116,47 +164,71 @@ class ExportProducts extends Module
 					break;
 				}
 			}
-			
-			$sql='SELECT '.implode(', ', $fields).'
+			$lang = $_REQUEST['lang'];
+			$sql='SELECT p.`id_product`, '.implode(', ', $fields).'
 			FROM '._DB_PREFIX_.'product as p
-			LEFT JOIN `'._DB_PREFIX_.'product_lang` pl ON (p.`id_product` = pl.`id_product`)
-			LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (p.`id_category_default` = cl.`id_category`)
+			LEFT JOIN `'._DB_PREFIX_.'product_lang` pl ON (pl.`id_product` = p.`id_product`)
+			WHERE pl.`id_lang`=' . $lang . ' GROUP BY p.`id_product`
 			';
 			
+			$delimiter = $_REQUEST['delimiter'];
 			$exportlist = Db::getInstance()->ExecuteS($sql);
 			$f=fopen(dirname(__FILE__).'/products.csv', 'w');
-			fwrite($f, implode(', ', $titles)."\r\n");
+			fwrite($f, implode($delimiter, $titles) . "\r\n");
 			foreach($exportlist AS $export) {
-				$product = new Product($export['id_product']);
-				$attribute = array();
+				$product = new Product($export['id_product'], true, $lang);
 				$tags = array();
-				$ups = array();
 				$accessories = array();
+				$export_final = array();
+				$imagelinks = array();
+				$cats = array();
 				
+				if(isset($export['id_category_default'])) {
+					$categories = $product->getIndexedCategories($export['id_product']);
+					foreach($categories as $cat) {
+						$category = new Category($cat['id_category'], $lang);
+						$cats[] = $category->name;
+					}
+					$export['id_category_default'] = implode(",", $cats);
+				}
+				
+				if($inc_images) {
+					$link = new Link();
+					$images = $product->getImages($export['id_product']);
+					foreach($images as $image) {
+						$imagelinks[] = "http://" . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').$link->getImageLink($product->link_rewrite, $product->id .'-'. $image['id_image']);
+					}
+					$export['images'] = implode(",", $imagelinks);
+				}
+				
+				if(isset($export['id_manufacturer'])) {
+					$export['id_manufacturer'] = $product->manufacturer_name;
+				}
+				
+				if(isset($export['meta_description'])) {
+					$export['meta_description'] = $product->meta_description;
+				}
+				
+				if(isset($export['meta_title'])) {
+					$export['meta_title'] = $product->meta_title;
+				}
+				
+				if(isset($export['meta_keywords'])) {
+					$export['meta_keywords'] = $product->meta_keywords;
+				}
 				if(isset($export['id_supplier'])) {
-					$supplier_name_sql = 'SELECT name FROM `'._DB_PREFIX_.'supplier` WHERE `id_supplier`='.$export['id_supplier'];
-					$supplier_name = Db::getInstance()->getRow($supplier_name_sql);
-					$export['id_supplier'] = $supplier_name['name'];
+					$export['id_supplier'] = $product->supplier_name;
 				}
 				
 				if(isset($export['id_tax'])) {
-					$tax_rate_sql = 'SELECT rate FROM `'._DB_PREFIX_.'tax` WHERE `id_tax`='.$export['id_tax']; 
-					$tax_rate = Db::getInstance()->getRow($tax_rate_sql);
-					$export['id_tax'] = $tax_rate['rate'];
+					$export['id_tax'] = $product->tax_rate;
 				}
 				
-				$id_tags_sql = 'SELECT id_tag FROM `'._DB_PREFIX_.'product_tag` WHERE `id_product`='.$export['id_product'];
-				if(($id_tags = Db::getInstance()->ExecuteS($id_tags_sql)) && (isset($inc_tags))) 
+				if(isset($inc_tags)) 
 				{
-					foreach($id_tags as $key => $value) {
-						$tag_name_sql = 'SELECT name FROM `'._DB_PREFIX_.'tag` WHERE `id_tag`='.$value['id_tag'];
-						$tag_name = Db::getInstance()->ExecuteS($tag_name_sql);
-						foreach($tag_name as $tag => $name) {
-							$tags[] = $name['name'];
-						}
-					}
-					$export['tags'] = implode(',', $tags);
+					$export['tags'] = $product->getTags(1);
 				}
+
 				if(isset($inc_accessories)) {
 					
 					if($acc = $product->getAccessories(1, false)) {
@@ -169,12 +241,24 @@ class ExportProducts extends Module
 						$export['accessories'] = '';
 					}
 				}
-
+				
+				if($_REQUEST['wcurrency'] == 1) {
+				$params['currency'] = Tools::setCurrency();
+					if(isset($export['price'])) {
+						$params['price'] = $product->price;
+						$export['price'] = $product->displayWtPriceWithCurrency($params, $smarty);
+					}
+				
+					if(isset($export['wholesale_price'])) {
+						$params['price'] = $product->wholesale_price;
+						$export['wholesale_price'] = $product->displayWtPriceWithCurrency($params, $smarty);
+					}
+				}
 				foreach($export_fields as $field => $value) {
-						$export_final[$field] = $export[$field];
+						$export_final[$field] = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $export[$field]);
 				}
 					
-				fputcsv($f, $export_final);
+				fputcsv($f, $export_final, $delimiter, '"');
 				
 			}
 			Tools::redirect('modules/exportproducts/products.csv');
@@ -186,6 +270,7 @@ class ExportProducts extends Module
 	private function _displayForm()
 	{
 		global $smarty, $cookie;
+		$smarty->assign('base_dir', _PS_BASE_URL_.__PS_BASE_URI__);
 		$smarty->assign('currentIndex', $_SERVER['REQUEST_URI']);
 		return $this->display(__FILE__,'exportproducts.tpl');
 	}
