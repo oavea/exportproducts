@@ -14,21 +14,22 @@ class ExportProducts extends Module
 	{
 		$this->name = 'exportproducts';
 		$this->tab = 'Tools';
-		$this->version = '0.2';
+		$this->version = '0.3';
+		$this->displayName = 'Export Products';
 		
 		/* The parent construct is required for translations */
 		parent::__construct();
-		
 		$this->page = basename(__FILE__, '.php');
-		$this->displayName = $this->l('Export Products');
 		$this->description = $this->l('A module to export all products to csv');
 	}
 
 	function install()
 	{
 		
+
+		$export_exists = 'DROP TABLE IF EXISTS  `' . _DB_PREFIX_ . 'export_fields`, `' . _DB_PREFIX_ . 'export_set`';
+
 		$export_fields_sql = "
-		DROP TABLE IF EXISTS  `" . _DB_PREFIX_ . "export_fields`;
 		CREATE TABLE IF NOT EXISTS `" . _DB_PREFIX_ . "export_fields` (
 			`id` int(10) NOT NULL auto_increment,
 			`field_name` varchar(50) NOT NULL,
@@ -38,8 +39,7 @@ class ExportProducts extends Module
 			PRIMARY KEY  (`id`)
 		)";
 	
-		$export_set_sql = '	
-		DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'export_set`;
+		$export_set_sql = '
 		CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'export_set` (
 		  `id` int(10) unsigned NOT NULL auto_increment,
 		  `set_name` varchar(200) NOT NULL,
@@ -80,7 +80,8 @@ class ExportProducts extends Module
 		(29, 'Images', 'images', 'products', 0);
 		";
 	
-		return(Db::getInstance()->Execute($export_fields_sql) AND
+		return(Db::getInstance()->Execute($export_exists) AND
+			   Db::getInstance()->Execute($export_fields_sql) AND
 			   Db::getInstance()->Execute($export_set_sql) AND
 			   Db::getInstance()->Execute($export_fields_data_sql) AND
 			   parent::install());
@@ -93,7 +94,7 @@ class ExportProducts extends Module
 			   parent::uninstall());
 	}
 	
-	function getContent()
+	public function getContent()
 	{
 		global $smarty;
 		
@@ -263,14 +264,14 @@ class ExportProducts extends Module
 			}
 			Tools::redirect('modules/exportproducts/products.csv');
 		}
-		$this->_html.=$this->_displayForm();
+		$this->_html.=$this->displayForm();
 		return $this->_html;
 	}
 
-	private function _displayForm()
+	public function displayForm()
 	{
 		global $smarty, $cookie;
-		$smarty->assign('base_dir', _PS_BASE_URL_.__PS_BASE_URI__);
+		$smarty->assign('base_dir', __PS_BASE_URI__);
 		$smarty->assign('currentIndex', $_SERVER['REQUEST_URI']);
 		return $this->display(__FILE__,'exportproducts.tpl');
 	}
