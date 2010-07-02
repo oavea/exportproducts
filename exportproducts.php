@@ -6,7 +6,7 @@
   * @author Lee Wood - lmwood.com
   * @copyright Lee Wood / PrestaShop
   * @license http://www.opensource.org/licenses/osl-3.0.php Open-source licence 3.0
-  * @version 0.1
+  * @version 0.4
   */
 class ExportProducts extends Module
 {
@@ -14,7 +14,7 @@ class ExportProducts extends Module
 	{
 		$this->name = 'exportproducts';
 		$this->tab = 'Tools';
-		$this->version = '0.3';
+		$this->version = '0.4';
 		$this->displayName = 'Export Products';
 		
 		/* The parent construct is required for translations */
@@ -26,7 +26,6 @@ class ExportProducts extends Module
 	function install()
 	{
 		
-
 		$export_exists = 'DROP TABLE IF EXISTS  `' . _DB_PREFIX_ . 'export_fields`, `' . _DB_PREFIX_ . 'export_set`';
 
 		$export_fields_sql = "
@@ -174,7 +173,9 @@ class ExportProducts extends Module
 			
 			$delimiter = $_REQUEST['delimiter'];
 			$exportlist = Db::getInstance()->ExecuteS($sql);
-			$f=fopen(dirname(__FILE__).'/products.csv', 'w');
+			
+			$f=fopen(_PS_PROD_PIC_DIR_. 'products.csv', 'w');
+			
 			fwrite($f, implode($delimiter, $titles) . "\r\n");
 			foreach($exportlist AS $export) {
 				$product = new Product($export['id_product'], true, $lang);
@@ -262,7 +263,7 @@ class ExportProducts extends Module
 				fputcsv($f, $export_final, $delimiter, '"');
 				
 			}
-			Tools::redirect('modules/exportproducts/products.csv');
+			Tools::redirect('upload/products.csv');
 		}
 		$this->_html.=$this->displayForm();
 		return $this->_html;
