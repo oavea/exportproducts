@@ -180,7 +180,7 @@ $(document).ready(function() {
 		</select><a class="export_btn" onclick="deleteSet();" id="deletefieldset">Delete Set</a>
 	</form>
 	<br/>
-	<form id="export_form" action="{$currentIndex}" method="post" accept-charset="utf-8">
+	<form id="export_form" action="{$base_dir}modules/exportproducts/exportproducts-ajax.php" method="post" accept-charset="utf-8">
 	<input type="hidden" name="export" value="export" id="export">
 	<label for="lang">Language:</label><br/><br/>
 	<select name="lang" id="lang" size="1">
