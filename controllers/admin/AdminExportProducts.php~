@@ -1,0 +1,12 @@
+<?php
+class AdminExportProductsController extends ModuleAdminController
+{
+
+	public function initContent()
+	{
+	parent::initContent();
+		
+        	$this->setTemplate('exportproducts.tpl');
+
+	}
+}

@@ -3,10 +3,10 @@
   * Export Products
   * @category export
   *
-  * @author Oavea - Oavea.com
-  * @copyright Oavea / PrestaShop
+  * @author Lee Wood - lmwood.com
+  * @copyright Lee Wood / PrestaShop
   * @license http://www.opensource.org/licenses/osl-3.0.php Open-source licence 3.0
-  * @version 2.0
+  * @version 0.5
   */
 
 class ExportProducts extends Module
@@ -18,9 +18,11 @@ class ExportProducts extends Module
 		$this->version = '2.0';
 		$this->displayName = 'Export Products';
 		$this->author = 'Oavea - oavea.com';
-		$this->description = $this->l('A module to export all products to csv matching the Prestashop import template.');
+		$this->description = $this->l('A module to export all products to csv/xls');
 
+		/* The parent construct is required for translations */
 		parent::__construct();
+
 	}
 
 	public function install()
@@ -40,7 +42,7 @@ class ExportProducts extends Module
         foreach($languages as $lang){
             $tab->name[$lang['id_lang']] = $name;
         }
-    	$tab->save();
+    $tab->save();
 	}
 
 	public function uninstall()
@@ -53,6 +55,20 @@ class ExportProducts extends Module
 		$tab_controller_main_id = TabCore::getIdFromClassName($controllerName);
 		$tab_controller_main = new Tab($tab_controller_main_id);
 		$tab_controller_main->delete();
+	}
+
+
+	public function getContent()
+	{
+
+	}
+
+	public function displayForm()
+	{
+		global $smarty, $cookie;
+		$smarty->assign('base_dir', __PS_BASE_URI__);
+		$smarty->assign('currentIndex', $_SERVER['REQUEST_URI']);
+		return $this->display(__FILE__,'exportproducts.tpl');
 	}
 
 }
