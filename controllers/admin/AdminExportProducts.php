@@ -272,7 +272,7 @@ class AdminExportProductsController extends ModuleAdminController {
 
 								break;
 							case 'reduction_price':
-								$specificPrice = SpecificPrice::getSpecificPrice($p->id);
+								$specificPrice = SpecificPrice::getSpecificPrice($p->id, 1, 0, 0, 0, 0);
 
 								$line['reduction_price'] = '';
 								$line['reduction_percent'] = '';
@@ -324,7 +324,7 @@ class AdminExportProductsController extends ModuleAdminController {
 								$warehouses = Warehouse::getWarehousesByProductId($p->id);
 								$line['warehouse'] = '';
 								if (! empty($warehouses))
-									$line['warehouse'] = implode(',', array_column($warehouses, 'id_warehouse'));
+                                    $line['warehouse'] = implode(',', array_map(function($id_warehouses){return $id_warehouses['id_warehouse']}, $warehouses));
 
 								break;
 						}
