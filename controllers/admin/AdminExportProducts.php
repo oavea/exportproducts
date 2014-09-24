@@ -233,7 +233,7 @@ class AdminExportProductsController extends ModuleAdminController {
 			$export_active = (Tools::getValue('export_active') == 0 ? false : true);
 			$export_category = (Tools::getValue('export_category') == 99999 ? false : Tools::getValue('export_category'));
 
-			$products = Product::getProducts($id_lang, 0, 0, 'id', 'ASC', $export_category, $export_active);
+			$products = Product::getProducts($id_lang, 0, 0, 'id_product', 'ASC', $export_category, $export_active);
 
 			foreach ($products as $product)
 			{

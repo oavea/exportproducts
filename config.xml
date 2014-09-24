@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>exportproducts</name>
+	<displayName><![CDATA[Export Products]]></displayName>
+	<version><![CDATA[2.0]]></version>
+	<description><![CDATA[A module to export all products to csv matching the Prestashop import template.]]></description>
+	<author><![CDATA[Oavea - oavea.com]]></author>
+	<tab><![CDATA[administration]]></tab>
+	<is_configurable>0</is_configurable>
+	<need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+</module>
