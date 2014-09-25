@@ -324,7 +324,13 @@ class AdminExportProductsController extends ModuleAdminController {
 								$warehouses = Warehouse::getWarehousesByProductId($p->id);
 								$line['warehouse'] = '';
 								if (! empty($warehouses))
-                                    $line['warehouse'] = implode(',', array_map(function($id_warehouses){return $id_warehouses['id_warehouse']}, $warehouses));
+								{
+									function getWarehouses($id_warehouses)
+									{
+										return $id_warehouses['id_warehouse'];
+									}
+                                    $line['warehouse'] = implode(',', array_map("getWarehouses", $warehouses));
+								}
 
 								break;
 						}
