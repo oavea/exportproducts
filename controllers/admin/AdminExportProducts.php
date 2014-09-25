@@ -111,16 +111,16 @@ class AdminExportProductsController extends ModuleAdminController {
 
 		foreach ($langs as $key => $language)
 		{
-			$options[] = ['id_option' => $language['id_lang'], 'name' => $language['name']];
+			$options[] = array('id_option' => $language['id_lang'], 'name' => $language['name']);
 		}
 
 		$cats = Category::getCategories($lang->id, true, false);
 
-		$categories[] = ['id_option' => 99999, 'name' => 'All'];
+		$categories[] = array('id_option' => 99999, 'name' => 'All');
 
 		foreach($cats as $key => $cat)
 		{
-			$categories[] = ['id_option' => $cat['id_category'], 'name' => $cat['name']];
+			$categories[] = array('id_option' => $cat['id_category'], 'name' => $cat['name']);
 		}
 
 		$inputs = array(
@@ -148,8 +148,8 @@ class AdminExportProductsController extends ModuleAdminController {
 				'label' => $this->l('Export active products?'),
 				'name' => 'export_active',
 				'values' => array(
-					['id' => 'active_off', 'value'=> 0, 'label' => 'no, export all products.'],
-					['id' => 'active_on', 'value'=> 1, 'label' => 'yes, export only active products'],
+					array('id' => 'active_off', 'value'=> 0, 'label' => 'no, export all products.'),
+					array('id' => 'active_on', 'value'=> 1, 'label' => 'yes, export only active products'),
 				),
 				'is_bool' => true,
 			),
@@ -237,7 +237,7 @@ class AdminExportProductsController extends ModuleAdminController {
 
 			foreach ($products as $product)
 			{
-				$line = [];
+				$line = array();
 				$p = new Product($product['id_product'], true, $id_lang, 1);
 
 				foreach ($this->available_fields as $field => $array)
@@ -304,7 +304,7 @@ class AdminExportProductsController extends ModuleAdminController {
 							case 'image':
 
 								$link = new Link();
-								$imagelinks = [];
+								$imagelinks = array();
 								$images = $p->getImages($id_lang);
 								foreach ($images as $image) {
 									$imagelinks[] = Tools::getShopProtocol() . $link->getImageLink($p->link_rewrite, $p->id . '-' . $image['id_image']);
