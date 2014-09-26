@@ -23,7 +23,7 @@ class AdminExportProductsController extends ModuleAdminController {
 			Tools::redirectAdmin($this->context->link->getAdminLink('AdminHome'));
 
 		$this->available_fields = array(
-			'id'                        => array('label' => 'ID'),
+			'id'                        => array('label' => 'Product ID'),
 			'active'                    => array('label' => 'Active (0/1)'),
 			'name'                      => array('label' => 'Name'),
 			'category'                  => array('label' => 'Categories (x,y,z...)'),
