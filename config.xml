@@ -2,7 +2,7 @@
 <module>
 	<name>exportproducts</name>
 	<displayName><![CDATA[Export Products]]></displayName>
-	<version><![CDATA[2.0]]></version>
+	<version><![CDATA[2.4]]></version>
 	<description><![CDATA[A module to export all products to csv matching the Prestashop import template.]]></description>
 	<author><![CDATA[Oavea - oavea.com]]></author>
 	<tab><![CDATA[administration]]></tab>

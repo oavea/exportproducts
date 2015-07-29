@@ -6,7 +6,7 @@
  * @author Oavea - Oavea.com
  * @copyright Oavea / PrestaShop
  * @license http://www.opensource.org/licenses/osl-3.0.php Open-source licence 3.0
- * @version 2.0
+ * @version 2.1
  */
 
 class AdminExportProductsController extends ModuleAdminController {
@@ -26,7 +26,7 @@ class AdminExportProductsController extends ModuleAdminController {
 			'id'                        => array('label' => 'Product ID'),
 			'active'                    => array('label' => 'Active (0/1)'),
 			'name'                      => array('label' => 'Name'),
-			'category'                  => array('label' => 'Categories (x,y,z...)'),
+			'categories'                => array('label' => 'Categories (x,y,z...)'),
 			'price_tex'                 => array('label' => 'Price tax excluded'),
 			'price_tin'                 => array('label' => 'Price tax included'),
 			'id_tax_rules_group'        => array('label' => 'Tax rules ID'),
@@ -64,7 +64,7 @@ class AdminExportProductsController extends ModuleAdminController {
 			'available_later'           => array('label' => 'Text when backorder allowed'),
 			'available_for_order'       => array('label' => 'Available for order (0 = No, 1 = Yes)'),
 			'available_date'            => array('label' => 'Product available date'),
-			'date_add'                  => array('label' => 'Product creation date'),
+			'date_added'                  => array('label' => 'Product creation date'),
 			'show_price'                => array('label' => 'Show price (0 = No, 1 = Yes)'),
 			'image'                     => array('label' => 'Image URLs (x,y,z...)'),
 			'delete_existing_images'    => array(
@@ -108,13 +108,14 @@ class AdminExportProductsController extends ModuleAdminController {
 	{
 		$lang = new Language((int) Configuration::get('PS_LANG_DEFAULT'));
 		$langs = Language::getLanguages();
+		$id_shop = (int)$this->context->shop->id;
 
 		foreach ($langs as $key => $language)
 		{
 			$options[] = array('id_option' => $language['id_lang'], 'name' => $language['name']);
 		}
 
-		$cats = Category::getCategories($lang->id, true, false);
+		$cats = $this->getCategories($lang->id, true, $id_shop);
 
 		$categories[] = array('id_option' => 99999, 'name' => 'All');
 
@@ -203,7 +204,9 @@ class AdminExportProductsController extends ModuleAdminController {
 	public function getConfigFieldsValues()
 	{
 		return array(
-			'export_delimiter' => ';',
+			'export_active' => false,
+			'export_category' => 'all',
+			'export_delimiter' => ',',
 			'export_language'  => (int) Configuration::get('PS_LANG_DEFAULT')
 		);
 	}
@@ -213,6 +216,7 @@ class AdminExportProductsController extends ModuleAdminController {
 		if (Tools::isSubmit('submitExport')) {
 			$delimiter = Tools::getValue('export_delimiter');
 			$id_lang = Tools::getValue('export_language');
+			$id_shop = (int)$this->context->shop->id;
 
 			set_time_limit(0);
 			$fileName = 'products_'.date("Y_m_d_H_i_s").'.csv';
@@ -238,8 +242,8 @@ class AdminExportProductsController extends ModuleAdminController {
 			foreach ($products as $product)
 			{
 				$line = array();
-				$p = new Product($product['id_product'], true, $id_lang, 1);
-
+				$p = new Product($product['id_product'], true, $id_lang, $id_shop);
+				$p->loadStockData ();
 				foreach ($this->available_fields as $field => $array)
 				{
 					if (isset($p->$field) && !is_array($p->$field))
@@ -250,6 +254,17 @@ class AdminExportProductsController extends ModuleAdminController {
 					{
 						switch ($field)
 						{
+							case 'categories':
+
+								$cats = $p->getProductCategoriesFull($p->id, $id_lang);
+								$cat_array = array();
+								foreach($cats as $cat)
+								{
+									$cat_array[] = $cat['name'];
+								}
+
+								$line['categories'] = implode(",", $cat_array);
+								break;
 							case 'price_tex':
 								$line['price_tex'] = $p->getPrice(false);
 								$line['price_tin'] = $p->getPrice(true);
@@ -272,7 +287,7 @@ class AdminExportProductsController extends ModuleAdminController {
 
 								break;
 							case 'reduction_price':
-								$specificPrice = SpecificPrice::getSpecificPrice($p->id, 1, 0, 0, 0, 0);
+								$specificPrice = SpecificPrice::getSpecificPrice($p->id, $id_shop, 0, 0, 0, 0);
 
 								$line['reduction_price'] = '';
 								$line['reduction_percent'] = '';
@@ -317,7 +332,7 @@ class AdminExportProductsController extends ModuleAdminController {
 
 								break;
 							case 'shop':
-								$line['shop'] = 1;
+								$line['shop'] = $id_shop;
 
 								break;
 							case 'warehouse':
@@ -325,17 +340,19 @@ class AdminExportProductsController extends ModuleAdminController {
 								$line['warehouse'] = '';
 								if (! empty($warehouses))
 								{
-									function getWarehouses($id_warehouses)
-									{
-										return $id_warehouses['id_warehouse'];
-									}
-                                    $line['warehouse'] = implode(',', array_map("getWarehouses", $warehouses));
+                                    $line['warehouse'] = implode(',', array_map("$this->getWarehouses", $warehouses));
 								}
 
+								break;
+							case 'date_added':
+								$date = new DateTime($p->date_add);
+								$line['date_add'] = $date->format("Y-m-d");
 								break;
 						}
 					}
 				}
+				if (!$line[$field])
+					$line[$field] = '';
 				fputcsv($f, $line, $delimiter, '"');
 			}
 			fclose($f);
@@ -347,5 +364,24 @@ class AdminExportProductsController extends ModuleAdminController {
 	{
 		$this->content = $this->renderView();
 		parent::initContent();
+	}
+
+	public function getWarehouses($id_warehouses)
+	{
+		return $id_warehouses['id_warehouse'];
+	}
+
+	public function getCategories($id_lang, $active, $id_shop)
+	{
+		$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+			SELECT *
+			FROM `'._DB_PREFIX_.'category` c
+			LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON c.`id_category` = cl.`id_category`
+			WHERE '($id_shop ? 'cl.`id_shop` = '.(int)$id_shop : '').' '.($id_lang ? 'AND `id_lang` = '.(int)$id_lang : '').'
+			'.($active ? 'AND `active` = 1' : '').'
+			'.(!$id_lang ? 'GROUP BY c.id_category' : '').'
+			ORDER BY c.`level_depth` ASC, c.`position` ASC');
+
+		return $result;
 	}
 }

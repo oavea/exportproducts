@@ -6,7 +6,7 @@
   * @author Oavea - Oavea.com
   * @copyright Oavea / PrestaShop
   * @license http://www.opensource.org/licenses/osl-3.0.php Open-source licence 3.0
-  * @version 2.0
+  * @version 2.4.0
   */
 
 class ExportProducts extends Module
@@ -15,7 +15,7 @@ class ExportProducts extends Module
 	{
 		$this->name = 'exportproducts';
 		$this->tab = 'administration';
-		$this->version = '2.0';
+		$this->version = '2.4.0';
 		$this->displayName = 'Export Products';
 		$this->author = 'Oavea - oavea.com';
 		$this->description = $this->l('A module to export all products to csv matching the Prestashop import template.');
