@@ -377,7 +377,7 @@ class AdminExportProductsController extends ModuleAdminController {
 			SELECT *
 			FROM `'._DB_PREFIX_.'category` c
 			LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON c.`id_category` = cl.`id_category`
-			WHERE '($id_shop ? 'cl.`id_shop` = '.(int)$id_shop : '').' '.($id_lang ? 'AND `id_lang` = '.(int)$id_lang : '').'
+			WHERE '.($id_shop ? 'cl.`id_shop` = '.(int)$id_shop : '').' '.($id_lang ? 'AND `id_lang` = '.(int)$id_lang : '').'
 			'.($active ? 'AND `active` = 1' : '').'
 			'.(!$id_lang ? 'GROUP BY c.id_category' : '').'
 			ORDER BY c.`level_depth` ASC, c.`position` ASC');
